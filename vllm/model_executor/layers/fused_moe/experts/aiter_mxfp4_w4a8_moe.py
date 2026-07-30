@@ -568,9 +568,9 @@ class AiterW4A16ExpertsMonolithic(mk.FusedMoEExpertsMonolithic):
     def _supports_current_device() -> bool:
         if not rocm_aiter_ops.is_enabled():
             return False
-        from vllm.platforms.rocm import on_gfx950, on_gfx1250
+        from vllm.platforms.rocm import on_gfx942, on_gfx950, on_gfx1250
 
-        return on_gfx950() or on_gfx1250()
+        return on_gfx942() or on_gfx950() or on_gfx1250()
 
     @staticmethod
     def _supports_no_act_and_mul() -> bool:
