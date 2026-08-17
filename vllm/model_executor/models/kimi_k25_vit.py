@@ -47,21 +47,9 @@ def _apply_rope_input_validation(x, freqs_cis):
     assert freqs_cis.dtype == torch.complex64, freqs_cis.dtype
 
 
-def get_rope_shape_decorate(func):
-    _get_rope_shape_first_call_flag = set()
-
-    def wrapper(org, interpolation_mode, shape):
-        key = (org.requires_grad, torch.is_grad_enabled(), interpolation_mode)
-        if key not in _get_rope_shape_first_call_flag:
-            _get_rope_shape_first_call_flag.add(key)
-            _ = func(org, interpolation_mode, shape=(64, 64))
-        return func(org, interpolation_mode, shape)
-
-    return wrapper
-
-
-@get_rope_shape_decorate
-@torch.compile(dynamic=True, disable=current_platform.simple_compile_backend == "tpu")
+# Kept eager: compiling this runs outside vLLM's compilation lifecycle, which
+# pins TRITON_CACHE_DIR process-wide before the per-model cache is configured.
+# Eager is also faster here, as the op is too small to amortize guard overhead.
 def get_rope_shape(org, interpolation_mode, shape):
     return (
         F.interpolate(
